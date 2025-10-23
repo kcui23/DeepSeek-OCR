@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek OCR - Web Interface</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>DeepSeek OCR</h1>
+            <p class="subtitle">Powered by vLLM</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel: Input Controls -->
+            <div class="left-panel">
+                <div class="panel-section">
+                    <h2>图片上传</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <p>点击或拖拽图片到此处</p>
+                            <span class="file-hint">支持 JPG, PNG, BMP 等格式</span>
+                        </div>
+                        <div class="image-preview" id="imagePreview" style="display: none;">
+                            <img id="previewImg" src="" alt="Preview">
+                            <button class="remove-btn" id="removeBtn">&times;</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2>提示词 (Prompt)</h2>
+                    <textarea
+                        id="promptInput"
+                        class="prompt-input"
+                        rows="4"
+                        placeholder="输入提示词，例如：<image>Convert the following image to markdown format."
+                    ><image>Convert the following image to markdown format.</textarea>
+                </div>
+
+                <div class="panel-section">
+                    <h2>参数设置</h2>
+
+                    <div class="param-group">
+                        <label for="baseSize">
+                            <span>Base Size</span>
+                            <span class="param-value" id="baseSizeValue">1024</span>
+                        </label>
+                        <input type="range" id="baseSize" min="512" max="2048" step="128" value="1024">
+                    </div>
+
+                    <div class="param-group">
+                        <label for="imageSize">
+                            <span>Image Size</span>
+                            <span class="param-value" id="imageSizeValue">640</span>
+                        </label>
+                        <input type="range" id="imageSize" min="320" max="1280" step="64" value="640">
+                    </div>
+
+                    <div class="param-group">
+                        <label for="cropMode">
+                            <span>Crop Mode</span>
+                            <input type="checkbox" id="cropMode" checked class="toggle-switch">
+                        </label>
+                    </div>
+
+                    <div class="param-group">
+                        <label for="minCrops">
+                            <span>Min Crops</span>
+                            <span class="param-value" id="minCropsValue">2</span>
+                        </label>
+                        <input type="range" id="minCrops" min="1" max="10" step="1" value="2">
+                    </div>
+
+                    <div class="param-group">
+                        <label for="maxCrops">
+                            <span>Max Crops</span>
+                            <span class="param-value" id="maxCropsValue">6</span>
+                        </label>
+                        <input type="range" id="maxCrops" min="2" max="20" step="1" value="6">
+                    </div>
+                </div>
+
+                <button class="run-btn" id="runBtn" disabled>
+                    <span id="runBtnText">运行 OCR</span>
+                    <div class="spinner" id="spinner" style="display: none;"></div>
+                </button>
+            </div>
+
+            <!-- Right Panel: Results -->
+            <div class="right-panel">
+                <div class="results-container">
+                    <div class="empty-state" id="emptyState">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p>结果将在这里显示</p>
+                    </div>
+
+                    <div class="results-content" id="resultsContent" style="display: none;">
+                        <!-- Tabs -->
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="visualized">可视化结果</button>
+                            <button class="tab-btn" data-tab="processed">处理结果</button>
+                            <button class="tab-btn" data-tab="raw">原始结果</button>
+                        </div>
+
+                        <!-- Tab Contents -->
+                        <div class="tab-content active" id="visualizedTab">
+                            <div class="visualized-result">
+                                <img id="visualizedImage" src="" alt="Visualized Result">
+                                <p class="no-visual-msg" id="noVisualMsg" style="display: none;">
+                                    此结果没有可视化图像
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="processedTab">
+                            <div class="result-text">
+                                <pre id="processedText"></pre>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="rawTab">
+                            <div class="result-text">
+                                <pre id="rawText"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
