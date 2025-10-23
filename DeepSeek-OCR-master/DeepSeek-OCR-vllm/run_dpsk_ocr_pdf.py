@@ -3,6 +3,7 @@ import fitz
 import img2pdf
 import io
 import re
+import json
 from tqdm import tqdm
 import torch
 from concurrent.futures import ThreadPoolExecutor
@@ -133,6 +134,39 @@ def re_match(text):
         else:
             mathes_other.append(a_match[0])
     return matches, mathes_image, mathes_other
+
+
+def extract_image_captions(content):
+    """
+    从content中提取image和对应的caption
+    返回一个字典，key是图片索引，value是caption文本
+    只有当图片后面紧跟着image_caption时才会包含在字典中
+    """
+    image_caption_map = {}
+
+    # 匹配所有的 <|ref|>image<|/ref|><|det|>...<|/det|>
+    image_pattern = r'<\|ref\|>image<\|/ref\|><\|det\|>.*?<\|/det\|>'
+
+    # 找到所有image标记及其位置
+    image_matches = list(re.finditer(image_pattern, content, re.DOTALL))
+
+    for idx, img_match in enumerate(image_matches):
+        # 获取当前image标记结束的位置
+        img_end_pos = img_match.end()
+
+        # 从image标记结束位置开始，查找紧跟着的内容
+        remaining_text = content[img_end_pos:]
+
+        # 检查是否紧跟着 image_caption (允许有空白字符)
+        caption_pattern = r'^\s*<\|ref\|>image_caption<\|/ref\|><\|det\|>.*?<\|/det\|>\s*<center>(.*?)</center>'
+        caption_match = re.match(caption_pattern, remaining_text, re.DOTALL)
+
+        if caption_match:
+            caption_text = caption_match.group(1).strip()
+            if caption_text:
+                image_caption_map[idx] = caption_text
+
+    return image_caption_map
 
 
 def extract_coordinates_and_label(ref_text, image_width, image_height):
@@ -279,9 +313,11 @@ if __name__ == "__main__":
     mmd_det_path = output_path + '/' + INPUT_PATH.split('/')[-1].replace('.pdf', '_det.mmd')
     mmd_path = output_path + '/' + INPUT_PATH.split('/')[-1].replace('pdf', 'mmd')
     pdf_out_path = output_path + '/' + INPUT_PATH.split('/')[-1].replace('.pdf', '_layouts.pdf')
+    json_caption_path = output_path + '/' + INPUT_PATH.split('/')[-1].replace('.pdf', '_image_captions.json')
     contents_det = ''
     contents = ''
     draw_images = []
+    image_caption_dict = {}  # 用于存储图片路径和标题的映射
     jdx = 0
     for output, img in zip(outputs_list, images):
         content = output.outputs[0].text
@@ -303,11 +339,17 @@ if __name__ == "__main__":
         # print(matches_ref)
         result_image = process_image_with_refs(image_draw, matches_ref, jdx)
 
+        # 提取本页的所有image_caption映射关系 {图片索引: caption文本}
+        page_captions = extract_image_captions(content)
 
         draw_images.append(result_image)
 
-
+        # 建立图片路径和标题的映射
         for idx, a_match_image in enumerate(matches_images):
+            image_path = f'{OUTPUT_PATH}/images/{jdx}_{idx}.jpg'
+            # 检查当前图片索引是否在caption映射中
+            if idx in page_captions:
+                image_caption_dict[image_path] = page_captions[idx]
             content = content.replace(a_match_image, f'![](images/' + str(jdx) + '_' + str(idx) + '.jpg)\n')
 
         for idx, a_match_other in enumerate(mathes_other):
@@ -325,6 +367,11 @@ if __name__ == "__main__":
     with open(mmd_path, 'w', encoding='utf-8') as afile:
         afile.write(contents)
 
+    # 保存图片标题字典
+    with open(json_caption_path, 'w', encoding='utf-8') as afile:
+        json.dump(image_caption_dict, afile, ensure_ascii=False, indent=2)
+
+    print(f'{Colors.GREEN}Saved {len(image_caption_dict)} image-caption pairs to {json_caption_path}{Colors.RESET}')
 
     pil_to_pdf_img2pdf(draw_images, pdf_out_path)
 
