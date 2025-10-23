@@ -10,6 +10,7 @@ if torch.version.cuda == '11.8':
     os.environ["TRITON_PTXAS_PATH"] = "/usr/local/cuda-11.8/bin/ptxas"
 
 os.environ['VLLM_USE_V1'] = '0'
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 from vllm import AsyncLLMEngine, SamplingParams
 from vllm.engine.arg_utils import AsyncEngineArgs
