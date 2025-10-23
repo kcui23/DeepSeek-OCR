@@ -5,9 +5,9 @@
 # Large: base_size = 1280, image_size = 1280, crop_mode = False
 # Gundam: base_size = 1024, image_size = 640, crop_mode = True
 
-BASE_SIZE = 1024
-IMAGE_SIZE = 640
-CROP_MODE = True
+BASE_SIZE = 512
+IMAGE_SIZE = 512
+CROP_MODE = False
 MIN_CROPS= 2
 MAX_CROPS= 6 # max:9; If your GPU memory is small, it is recommended to set it to 6.
 MAX_CONCURRENCY = 100 # If you have limited GPU memory, lower the concurrency count.
@@ -21,8 +21,8 @@ MODEL_PATH = 'deepseek-ai/DeepSeek-OCR' # change to your model path
 # .jpg, .png, .jpeg: run_dpsk_ocr_image.py; 
 # Omnidocbench images path: run_dpsk_ocr_eval_batch.py
 
-INPUT_PATH = '' 
-OUTPUT_PATH = ''
+INPUT_PATH = '/hpc2hdd/home/kaicui/models/mine/DeepSeek-OCR/test/input/Cardiovascular Pathology The Perfect Preparation for USMLE Step 1 (Carlo Raj, MD) (Z-Library).pdf' 
+OUTPUT_PATH = '/hpc2hdd/home/kaicui/models/mine/DeepSeek-OCR/test/output'
 
 PROMPT = '<image>\n<|grounding|>Convert the document to markdown.'
 # PROMPT = '<image>\nFree OCR.'
