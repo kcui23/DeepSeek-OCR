@@ -1,0 +1,9 @@
+# Sample PDF paths file
+# Add your PDF file paths here, one per line
+# Lines starting with # are comments and will be ignored
+
+/path/to/first/document.pdf
+/path/to/second/document.pdf
+/path/to/third/document.pdf
+/path/to/fourth/document.pdf
+/path/to/fifth/document.pdf
